@@ -29,10 +29,10 @@ class App extends Component {
 
 	handleLogin(data) {
 		//const salt = bcrypt.genSaltSync(10);
-		//var hash = bcrypt.hashSync(pass.value, salt);
+		//const hash = bcrypt.hashSync(pass.value, salt);
 		//console.log(hash);
 
-		var hash =
+		const hash =
 			"$2a$10$jAieim6G6lWDIsrWk/vuduJjI1Yr/z5ZeEVIsKBKh9i8DE.1V3zGe";
 
 		if (
