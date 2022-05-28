@@ -14,27 +14,24 @@ class App extends Component {
 			hasSubmitted: 0,
 			hasCompleted: 0,
 			foodTypes: ["Apple", "Banana", "Orange"],
-			photoUri: null,
+			photo: null,
 		};
 	}
 
 	facialRecognition() {
 		const AWS = require("aws-sdk");
-		const bucket = "bucket"; // the bucketname without s3://
-		const photo_source = "source.jpg";
+		const bucket = "facialrecon"; // the bucketname without s3://
 		const photo_target = "target.jpg";
 		const config = new AWS.Config({
 			accessKeyId: process.env.AWS_ACCESS_KEY_ID,
 			secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-			region: process.env.AWS_REGION,
+			region: 'us-east-1',
 		});
+
 		const client = new AWS.Rekognition();
 		const params = {
 			SourceImage: {
-				S3Object: {
-					Bucket: bucket,
-					Name: photo_source,
-				},
+				Bytes: this.state.photo,
 			},
 			TargetImage: {
 				S3Object: {
@@ -44,18 +41,18 @@ class App extends Component {
 			},
 			SimilarityThreshold: 70,
 		};
+
 		client.compareFaces(params, function (err, response) {
 			if (err) {
 				console.log(err, err.stack); // an error occurred
 			} else {
 				response.FaceMatches.forEach((data) => {
-					let position = data.Face.BoundingBox;
 					let similarity = data.Similarity;
 					console.log(
-						`The face at: ${position.Left}, ${position.Top} matches with ${similarity} % confidence`
+						`Images match with ${similarity} % confidence`
 					);
-				}); // for response.faceDetails
-			} // if
+				});
+			}
 		});
 	}
 
@@ -96,12 +93,12 @@ class App extends Component {
 	handleClickReturn() {
 		this.setState({
 			hasSubmitted: 0,
-			photoUri: null,
+			photo: null,
 		});
 	}
 
 	handleClickConfirm() {
-		if (this.state.photoUri !== null) {
+		if (this.state.photo !== null) {
 			this.setState({
 				hasCompleted: 1,
 			});
@@ -113,20 +110,20 @@ class App extends Component {
 			order: [],
 			hasSubmitted: 0,
 			hasCompleted: 0,
-			photoUri: null,
+			photo: null,
 			orderNum: this.state.orderNum + 1,
 		});
 	}
 
 	handleClickRetake() {
 		this.setState({
-			photoUri: null,
+			photo: null,
 		});
 	}
 
 	handleTakePhoto(dataUri) {
 		this.setState({
-			photoUri: dataUri,
+			photo: dataUri,
 		});
 	}
 
@@ -205,10 +202,10 @@ class App extends Component {
 						</button>
 					</div>
 					<div>
-						{this.state.photoUri ? (
+						{this.state.photo ? (
 							<div className={"PreviewImage"}>
 								<img
-									src={this.state.photoUri}
+									src={this.state.photo}
 									alt="You should not be seeing this, oopsie!"
 								/>
 								<button
