@@ -2,7 +2,9 @@ import React, { Component } from "react";
 import Camera from "react-html5-camera-photo";
 import "react-html5-camera-photo/build/css/index.css";
 import Food from "./components/food";
+import { Buffer } from "buffer";
 import "./App.css";
+import AWS from "aws-sdk";
 //import axios from "axios";
 
 class App extends Component {
@@ -18,41 +20,31 @@ class App extends Component {
 		};
 	}
 
-	facialRecognition() {
-		const AWS = require("aws-sdk");
-		const bucket = "facialrecon"; // the bucketname without s3://
-		const photo_target = "target.jpg";
-		const config = new AWS.Config({
-			accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-			secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-			region: 'us-east-1',
+	uploadImage() {
+		const s3 = new AWS.S3({
+			accessKeyId: "ASIAVTI7IFA56ZQTXXKE",
+			secretAccessKey: "LeI7zyiQbi+jvJ321rlCAD2SFCH9Myf9knim5hNE",
+			sessionToken:
+				"FwoGZXIvYXdzECIaDC38wXXtHfupJUIssSLLAefFAECbxyvh2934TXtrQt/PSVxz5qiWbYcgw1k6A3+zwHn6eUFkL3aQ++OdAIIApI9tWT3mn4Qk9bpHQLmohD5JoP7kDcTy82YiHW7i7LmOIHNh+O4uTEJp7HZ354X7oyqF1BZIyhogidbMdFKmxb19BviQ5hrOgX82ONVCh9S3rVxrcIMi0YrnjJ+EPI4SFYrWoQE9XqE0JIiQGd7WzLnsx9UpPcIU0+G4OtTtlx9y2n0HEMJWQvey94NHWCJPMbigFHplnEPMwU65KM2Y0JQGMi27+tmoBAcfDPXkjPM0unE6EnfxGto1XRGBTUe2l4SQ+y8rkuGYojCZNIgg5m0=",
 		});
 
-		const client = new AWS.Rekognition();
+		let image = this.state.photo;
+		image = image.replace(/^data:image\/\w+;base64,/, "");
+		const buff = new Buffer.from(image, "base64");
+
 		const params = {
-			SourceImage: {
-				Bytes: this.state.photo,
-			},
-			TargetImage: {
-				S3Object: {
-					Bucket: bucket,
-					Name: photo_target,
-				},
-			},
-			SimilarityThreshold: 70,
+			Bucket: "facialrecon",
+			Key: "8.png",
+			Body: buff,
+			ContentType: "image/png",
+			ContentEncoding: "base64",
 		};
 
-		client.compareFaces(params, function (err, response) {
+		s3.upload(params, (err, data) => {
 			if (err) {
-				console.log(err, err.stack); // an error occurred
-			} else {
-				response.FaceMatches.forEach((data) => {
-					let similarity = data.Similarity;
-					console.log(
-						`Images match with ${similarity} % confidence`
-					);
-				});
-			}
+				console.log("Upload to S3 failed miserably..");
+				console.log(err, data);
+			} else console.log(data.Location);
 		});
 	}
 
@@ -102,6 +94,7 @@ class App extends Component {
 			this.setState({
 				hasCompleted: 1,
 			});
+			this.uploadImage();
 		}
 	}
 
