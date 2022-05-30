@@ -5,7 +5,7 @@ import Food from "./components/food";
 import { Buffer } from "buffer";
 import "./App.css";
 import AWS from "aws-sdk";
-//import axios from "axios";
+import axios from "axios";
 
 class App extends Component {
 	constructor(props) {
@@ -15,9 +15,35 @@ class App extends Component {
 			orderNum: 0,
 			hasSubmitted: 0,
 			hasCompleted: 0,
-			foodTypes: ["Apple", "Banana", "Orange"],
+			foodTypes: [],
 			photo: null,
+			photoName: "",
 		};
+	}
+
+	componentDidMount() {
+		axios
+			.get(
+				"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/menu/list"
+			)
+			.then((res) => {
+				let arr = [];
+				res.data.forEach((element) => {
+					arr.push(element.name);
+				});
+				this.setState({
+					foodTypes: arr,
+				});
+			});
+	}
+
+	randomString(len) {
+		var p =
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		return [...Array(len)].reduce(
+			(a) => a + p[~~(Math.random() * p.length)],
+			""
+		);
 	}
 
 	uploadImage() {
@@ -32,9 +58,13 @@ class App extends Component {
 		image = image.replace(/^data:image\/\w+;base64,/, "");
 		const buff = new Buffer.from(image, "base64");
 
+		this.setState({
+			photoName: this.randomString(16),
+		});
+
 		const params = {
 			Bucket: "facialrecon",
-			Key: "8.png",
+			Key: this.state.photoName,
 			Body: buff,
 			ContentType: "image/png",
 			ContentEncoding: "base64",
@@ -51,19 +81,6 @@ class App extends Component {
 	handleClickFood(food) {
 		this.setState({
 			order: [...this.state.order, food],
-		});
-	}
-
-	handleClickRefresh() {
-		//axios
-		//	.get(
-		//		"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/polls/"
-		//	)
-		//	.then((res) => {
-		//		console.log(res);
-		//	});
-		this.setState({
-			foodTypes: ["Morangos", "Melancia", "Melão", "McSopíssima"],
 		});
 	}
 
@@ -104,6 +121,7 @@ class App extends Component {
 			hasSubmitted: 0,
 			hasCompleted: 0,
 			photo: null,
+			photoName: "",
 			orderNum: this.state.orderNum + 1,
 		});
 	}
@@ -147,12 +165,6 @@ class App extends Component {
 					<div className="Menu">
 						Menu:
 						<ul className="MenuList">{menu}</ul>
-						<button
-							className="Button"
-							onClick={() => this.handleClickRefresh()}
-						>
-							Refresh
-						</button>
 						<button
 							className="Button"
 							onClick={() => this.handleClickRemoveOrder()}
