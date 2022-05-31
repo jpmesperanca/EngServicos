@@ -16,14 +16,13 @@ class App extends Component {
 	}
 
 	handleClickRefresh() {
+		const fd = new FormData();
+		fd.append("jwt", this.state.login);
+
 		axios
-			.get(
+			.post(
 				"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/staff/user",
-				{
-					data: {
-						jwt: this.state.login,
-					},
-				}
+				fd
 			)
 			.then((res) => {
 				let arr = [];
@@ -37,6 +36,9 @@ class App extends Component {
 				this.setState({
 					orders: arr,
 				});
+			})
+			.catch((reason) => {
+				console.log(reason);
 			});
 	}
 
@@ -57,7 +59,35 @@ class App extends Component {
 				this.setState({
 					login: res.data.jwt,
 				});
-				this.handleClickRefresh();
+
+				const fd = new FormData();
+				fd.append("jwt", res.data.jwt);
+
+				axios
+					.post(
+						"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/staff/user"
+					)
+					.then((res) => {
+						let arr = [];
+						res.data.forEach((element) => {
+							let allfood = [];
+							element.meals.forEach((el) => {
+								allfood.push(el.meals__name);
+							});
+							arr.push({
+								Id: element.id,
+								Food: allfood,
+								Status: element.status,
+								Tag: element.location_tag,
+							});
+						});
+						this.setState({
+							orders: arr,
+						});
+					})
+					.catch((reason) => {
+						console.log(reason);
+					});
 			})
 			.catch(() => {
 				this.setState({
@@ -68,7 +98,7 @@ class App extends Component {
 
 	renderOrder(order) {
 		return (
-			<li key={order.Tag}>
+			<li key={order.Id}>
 				<Order
 					Food={order.Food}
 					Status={order.Status}
