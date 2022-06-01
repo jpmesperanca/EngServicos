@@ -19,6 +19,7 @@ class App extends Component {
 			hasSubmitted: 0,
 			hasCompleted: 0,
 			foodTypes: [],
+			errorMessage: false,
 		};
 	}
 
@@ -49,10 +50,10 @@ class App extends Component {
 
 	uploadImage() {
 		const s3 = new AWS.S3({
-			accessKeyId: "ASIAVTI7IFA5RTCRA6GZ",
-			secretAccessKey: "a3Ua6Y0PuOeuB4uu6Q4jVGYZZMtp2066WyA2Tbzo",
+			accessKeyId: "ASIAVTI7IFA523JLK2FK",
+			secretAccessKey: "sPd/upqVv9i6BdDbfVXuQ7630dIT5JVd/z96A/nO",
 			sessionToken:
-				"FwoGZXIvYXdzEDcaDBOf/aXk9o5iaj2K4SLLARI5s252/DLSJfIk+BSIDnBzBw1dMec2Iuvef4xUb3f5cf/jNWCgx9S1Erm6fv9JjG9ZlceI4wQJfNkuoe4b/lnyxU1+7wdTanGv3Hom3wWhZYso6yAsoKXqyJMgNXCSfvf2zXhQm9yacKk9hzkYv8yP3uA9+9Izl0C8aZeIU9fVIOzNzc7JlyfCQOtAnv0jBLT3L2sH7fiCQiM9DWkBMzNLdpOjMQ7rIqvuvHDPSLYQBu5vhgc5/H4/xu7R2T1O8gHwU8KSBqZsOoCRKJfn1JQGMi1s4VA3YR7bckaCxEUgaHTmRDPe9CyPFfEjcd079vq5lrqsv+fGKy8RxXfwQHI=",
+				"FwoGZXIvYXdzEFAaDM/AYz9LJ1Qm0Jdg1iLLAce/mk2T2a2teB7r7oTtkj/l0i4N0Jz6n0I816GAI6ZPkHckVH+2YPgsAi/FEpsKos32dqKv04mzWcRJm/jfzMPsh6IZFlgfHeM7gvr+71La5v6WPjaFy1x9Il9R0fbvohZ4mGmzc0VFWxVCS5hJo/FMZ0SSS5u6qij1t/x0hxcRvZvtZR2SwBPoiSSB/aZawst8N7D049LMH7N8xScGL51US0L9RbuRkEIaDKmh6yBTRFwtmwPW9sJoBne/GAS27gxb1R6F5RG3HJ4HKJa62pQGMi3xPKCSlU/avD+NOwijE9vg/2XPIcKhRYSsbt7bfIqB6g1U3Qe31PWAs2Plj50=",
 		});
 
 		let image = this.state.photo;
@@ -132,45 +133,70 @@ class App extends Component {
 		});
 	}
 
-	handleClickConfirm() {
-		if (this.state.photo !== null) {
-			this.setState({
-				hasCompleted: 1,
-			});
-
-			const photoName = this.uploadImage();
-
-			const fd = {
-				orderId: this.state.orderId,
-				photo: photoName,
-				tag: this.state.orderNum,
-			};
-
-			axios
-				.post(
-					"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/menu/confirmorder",
-					fd
-				)
-				.then((res) => {
-					if (this.state.order.length > 0) {
-						this.setState({
-							hasSubmitted: 1,
-						});
-					}
-					console.log(res);
-				});
-		}
-	}
-
-	handleClickFinalize() {
+	handleClickReset() {
 		this.setState({
+			errorMessage: false,
 			order: [],
+			orderPrice: -1,
+			orderId: -1,
 			hasSubmitted: 0,
 			hasCompleted: 0,
 			photo: null,
 			photoName: "",
 			orderNum: this.state.orderNum + 1,
 		});
+	}
+
+	handleClickConfirm() {
+		const photoName = this.uploadImage();
+
+		const fd = {
+			orderID: this.state.orderId,
+			photo: photoName,
+			tag: this.state.orderNum,
+		};
+
+		axios
+			.post(
+				"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/menu/confirmorder",
+				fd
+			)
+			.then((res) => {
+				if (res.data === "FAILED") {
+					this.setState({
+						errorMessage: true,
+					});
+				} else {
+					this.setState({
+						hasSubmitted: 1,
+						hasCompleted: 1,
+					});
+				}
+			});
+	}
+
+	handleClickFinalize() {
+		const fd = {
+			orderID: this.state.orderId,
+		};
+
+		axios
+			.post(
+				"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/menu/delivery",
+				fd
+			)
+			.then((res) => {
+				this.setState({
+					order: [],
+					orderPrice: -1,
+					orderId: -1,
+					hasSubmitted: 0,
+					hasCompleted: 0,
+					photo: null,
+					photoName: "",
+					orderNum: this.state.orderNum + 1,
+				});
+			});
 	}
 
 	handleClickRetake() {
@@ -206,7 +232,25 @@ class App extends Component {
 			return this.renderOrder(food, index);
 		});
 
-		if (this.state.hasSubmitted === 0) {
+		if (this.state.errorMessage) {
+			return (
+				<div>
+					<div>
+						{
+							"Facial recognition error. Please go to customer support!"
+						}
+					</div>
+					<div>
+						<button
+							className="Button"
+							onClick={() => this.handleClickReset()}
+						>
+							Go Back
+						</button>
+					</div>
+				</div>
+			);
+		} else if (this.state.hasSubmitted === 0) {
 			return (
 				<div className="App">
 					<div className="Menu">
@@ -238,7 +282,7 @@ class App extends Component {
 		} else if (this.state.hasCompleted === 0) {
 			return (
 				<div className="App">
-					<div>Preço: {this.state.orderPrice}</div>
+					<h>Preço: {this.state.orderPrice}</h>
 					<div className="DecisionButtons">
 						<button
 							className="Button"

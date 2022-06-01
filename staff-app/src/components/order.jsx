@@ -7,7 +7,7 @@ function Order(props) {
 
 	return (
 		<ul className="Order">
-			{props.Tag + " -> " + props.Status}
+			{props.Id + " (" + props.Tag + "): " + props.Status}
 			{orderFood}
 		</ul>
 	);

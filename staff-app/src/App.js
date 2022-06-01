@@ -21,14 +21,18 @@ class App extends Component {
 
 		axios
 			.post(
-				"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/staff/user",
-				fd
+				"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/staff/user"
 			)
 			.then((res) => {
 				let arr = [];
 				res.data.forEach((element) => {
+					let allfood = [];
+					element.meals.forEach((el) => {
+						allfood.push(el.meals__name);
+					});
 					arr.push({
-						Food: element.meals__name,
+						Id: element.id,
+						Food: allfood,
 						Status: element.status,
 						Tag: element.location_tag,
 					});
@@ -36,9 +40,6 @@ class App extends Component {
 				this.setState({
 					orders: arr,
 				});
-			})
-			.catch((reason) => {
-				console.log(reason);
 			});
 	}
 
@@ -103,6 +104,7 @@ class App extends Component {
 					Food={order.Food}
 					Status={order.Status}
 					Tag={order.Tag}
+					Id={order.Id}
 				/>
 			</li>
 		);
