@@ -20,6 +20,7 @@ class App extends Component {
 			hasCompleted: 0,
 			foodTypes: [],
 			errorMessage: false,
+			waiting: 0,
 		};
 	}
 
@@ -50,10 +51,10 @@ class App extends Component {
 
 	uploadImage() {
 		const s3 = new AWS.S3({
-			accessKeyId: "ASIAVTI7IFA523JLK2FK",
-			secretAccessKey: "sPd/upqVv9i6BdDbfVXuQ7630dIT5JVd/z96A/nO",
+			accessKeyId: "ASIAVTI7IFA5YE4HLGJE",
+			secretAccessKey: "a5nf9Ahjx1QTwyGd/pUGe1BApKORmiSaWKviq5VC",
 			sessionToken:
-				"FwoGZXIvYXdzEFAaDM/AYz9LJ1Qm0Jdg1iLLAce/mk2T2a2teB7r7oTtkj/l0i4N0Jz6n0I816GAI6ZPkHckVH+2YPgsAi/FEpsKos32dqKv04mzWcRJm/jfzMPsh6IZFlgfHeM7gvr+71La5v6WPjaFy1x9Il9R0fbvohZ4mGmzc0VFWxVCS5hJo/FMZ0SSS5u6qij1t/x0hxcRvZvtZR2SwBPoiSSB/aZawst8N7D049LMH7N8xScGL51US0L9RbuRkEIaDKmh6yBTRFwtmwPW9sJoBne/GAS27gxb1R6F5RG3HJ4HKJa62pQGMi3xPKCSlU/avD+NOwijE9vg/2XPIcKhRYSsbt7bfIqB6g1U3Qe31PWAs2Plj50=",
+				"FwoGZXIvYXdzEFUaDJjqC7WMnzccOo7FIyLLAfOCzjvq9s/xM880c5hHf8Ty7c5ZNrawNj3NVTG4oz25Gkpx7I3TmwU/pXKD1iE9K+p4tevs1BitFlTMCy8b6KylZAQPDRxNcVbr3ADiUX6ERylBYqjjBmLXiHBOYFeeDSPPayMPzVZ8J24K3PkZihLWaltEDJ4Lz8DTE+48IBgGQriQqgRx85fmOOCtjt/nxXgCO+se21ydFc4QLsEWbcRYOvkRl1Udn9WhtH8Kj/CfQbID7bKSoTdOMzU9RCs4KEl5QmiiTiSyUxzuKI2525QGMi0D2m8hDYe9DB/ORYyoWIfrPoFfkGRvF7Jp4QFmSYRY4O2wzNrVMBZJnVJrQoA=",
 		});
 
 		let image = this.state.photo;
@@ -156,6 +157,10 @@ class App extends Component {
 			tag: this.state.orderNum,
 		};
 
+		this.setState({
+			waiting: 1,
+		});
+
 		axios
 			.post(
 				"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/menu/confirmorder",
@@ -170,6 +175,7 @@ class App extends Component {
 					this.setState({
 						hasSubmitted: 1,
 						hasCompleted: 1,
+						waiting: 0,
 					});
 				}
 			});
@@ -282,20 +288,26 @@ class App extends Component {
 		} else if (this.state.hasCompleted === 0) {
 			return (
 				<div className="App">
-					<h>Preço: {this.state.orderPrice}</h>
+					<div>Preço: {this.state.orderPrice}</div>
 					<div className="DecisionButtons">
-						<button
-							className="Button"
-							onClick={() => this.handleClickConfirm()}
-						>
-							Confirm
-						</button>
-						<button
-							className="Button"
-							onClick={() => this.handleClickReturn()}
-						>
-							Return
-						</button>
+						{this.state.waiting ? (
+							<div>Processing payment...</div>
+						) : (
+							<div>
+								<button
+									className="Button"
+									onClick={() => this.handleClickConfirm()}
+								>
+									Confirm
+								</button>
+								<button
+									className="Button"
+									onClick={() => this.handleClickReturn()}
+								>
+									Return
+								</button>
+							</div>
+						)}
 					</div>
 					<div>
 						{this.state.photo ? (
@@ -330,7 +342,7 @@ class App extends Component {
 							className="Button"
 							onClick={() => this.handleClickFinalize()}
 						>
-							MEAL HAS ARRIVED!
+							MEAL HAS ARRIVED
 						</button>
 					</div>
 				</div>

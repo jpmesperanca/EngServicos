@@ -58,6 +58,7 @@ class App extends Component {
 			)
 			.then((res) => {
 				this.setState({
+					error: false,
 					login: res.data.jwt,
 				});
 
@@ -97,6 +98,23 @@ class App extends Component {
 			});
 	}
 
+	handleClickLogout() {
+		const payload = {
+			jwt: this.state.login,
+		};
+
+		axios
+			.post(
+				"http://proj-env.eba-pch63pxp.us-east-1.elasticbeanstalk.com/staff/logout",
+				payload
+			)
+			.then(() => {
+				this.setState({
+					login: false,
+				});
+			});
+	}
+
 	renderOrder(order) {
 		return (
 			<li key={order.Id}>
@@ -131,13 +149,19 @@ class App extends Component {
 		return (
 			<div className="App">
 				<div className="Request">
-					{"Requests:"}
+					Requests:
 					<ul className="RequestList">{orderList}</ul>
 					<button
 						className="Button"
 						onClick={() => this.handleClickRefresh()}
 					>
-						{"Refresh"}
+						Refresh
+					</button>
+					<button
+						className="Button"
+						onClick={() => this.handleClickLogout()}
+					>
+						Logout
 					</button>
 				</div>
 			</div>
