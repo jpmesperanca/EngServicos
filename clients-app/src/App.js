@@ -51,10 +51,10 @@ class App extends Component {
 
 	uploadImage() {
 		const s3 = new AWS.S3({
-			accessKeyId: "ASIAVTI7IFA5YE4HLGJE",
-			secretAccessKey: "a5nf9Ahjx1QTwyGd/pUGe1BApKORmiSaWKviq5VC",
+			accessKeyId: "ASIAVTI7IFA5UGDVFQSB",
+			secretAccessKey: "sFxDaX88qbhiGa+HA2I3/m4rWuMfBzthEES6rXSU",
 			sessionToken:
-				"FwoGZXIvYXdzEFUaDJjqC7WMnzccOo7FIyLLAfOCzjvq9s/xM880c5hHf8Ty7c5ZNrawNj3NVTG4oz25Gkpx7I3TmwU/pXKD1iE9K+p4tevs1BitFlTMCy8b6KylZAQPDRxNcVbr3ADiUX6ERylBYqjjBmLXiHBOYFeeDSPPayMPzVZ8J24K3PkZihLWaltEDJ4Lz8DTE+48IBgGQriQqgRx85fmOOCtjt/nxXgCO+se21ydFc4QLsEWbcRYOvkRl1Udn9WhtH8Kj/CfQbID7bKSoTdOMzU9RCs4KEl5QmiiTiSyUxzuKI2525QGMi0D2m8hDYe9DB/ORYyoWIfrPoFfkGRvF7Jp4QFmSYRY4O2wzNrVMBZJnVJrQoA=",
+				"FwoGZXIvYXdzEGgaDAWOcfJMwIiZZ3V8ACLLAZdutpm3z+dhlhxKZI2vnf9dcU8rXgp+6FBesbN3jNL7kI4Ps7NE/w1q9GUf92JRVyIFTnjeuis9h20YSK1A3TXsAbiyhxYkZXJO7TFfM8oW7T/4QZ0M8Fw289nxbOeJG6llKtC61KfGcMiH2zME0VP9Ngc/+N3SZWkETtoDSEQZkCxXndZWGiMiRpxv1CVDgNlNkACGqFBni4nNRG2+RkU29WnR+RC4GEkQX2edkPWlIyv8YmiMr1zETv1JYkz1KGR3GCUZklsR5jJBKM7J35QGMi1V6oFhDDP5yMnK4K+bYow3ohC8HyQGsCQBneBB+APACLWq+F7OL8pnIF8DYxw=",
 		});
 
 		let image = this.state.photo;
@@ -144,7 +144,8 @@ class App extends Component {
 			hasCompleted: 0,
 			photo: null,
 			photoName: "",
-			orderNum: this.state.orderNum + 1,
+			orderNum: 0,
+			waiting: 0,
 		});
 	}
 
@@ -200,7 +201,7 @@ class App extends Component {
 					hasCompleted: 0,
 					photo: null,
 					photoName: "",
-					orderNum: this.state.orderNum + 1,
+					orderNum: 0,
 				});
 			});
 	}
@@ -227,6 +228,14 @@ class App extends Component {
 
 	renderOrder(food, index) {
 		return <li key={index}>{food}</li>;
+	}
+
+	updateInputValue(evt) {
+		const val = evt.target.value;
+
+		this.setState({
+			orderNum: val,
+		});
 	}
 
 	render() {
@@ -276,6 +285,14 @@ class App extends Component {
 					</div>
 
 					<div className="Submit">
+						<div className="Input">
+							<label>Location Tag </label>
+							<input
+								value={this.state.orderNum}
+								onChange={(evt) => this.updateInputValue(evt)}
+								type="text"
+							/>
+						</div>
 						<button
 							className="Button"
 							onClick={() => this.handleClickSubmit()}
